@@ -6,7 +6,7 @@ class Company:
     def __init__(self, root=None):
         self.root = root
 
-    def build_from_json(self, file_path):
+    def build_from_json(self, file_path: str):
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
@@ -35,12 +35,12 @@ class Company:
                 current_position.parent = parent_position
                 parent_position.subordinates.append(current_position)
 
-    def find_position(self, attr, value):
+    def find_position(self, **kwargs) -> Position:
         def dfs(node):
             if node is None:
                 return None
 
-            if getattr(node, attr) == value:
+            if all(getattr(node, key) == value for key, value in kwargs.items()):
                 return node
 
             for sub in node.subordinates:
@@ -50,10 +50,10 @@ class Company:
 
             return None
 
-        return dfs(self.root)    
+        return dfs(self.root)  
 
-    def add_position(self, position_name, parent_position_name, first_name="", second_name=""):
-        parent_node = self.find_position("name", parent_position_name)
+    def add_position(self, position_name: str, parent_position_name: str, first_name="", second_name=""):
+        parent_node = self.find_position(name=parent_position_name)
         
         new_position = Position(
             first_name, second_name, 
@@ -73,14 +73,30 @@ class Company:
                 printer(node, counter+1)
         printer(self.root, 0)
 
-    def close_position(self, position_name):
-        pass
+    def close_position(self, position_name: str):
+        pos_node = self.find_position(name=position_name)
 
-    def remove_employee(self, first_name, second_name):
-        pass
+        if pos_node == self.root:
+            self.root = None
+            return
+
+        parent_node = pos_node.parent
+
+        parent_node.subordinates.remove(pos_node)
+
+        pos_node.parent = None
+
+    def remove_employee(self, first_name: str, second_name: str):
+        cur_node = self.find_position(first_name=first_name, second_name=second_name)
+        if not cur_node:
+            return
+        cur_node.id = ""
+        cur_node.first_name = ""
+        cur_node.second_name = ""
 
     def assign_employee_to_free_position(self, position_name, first_name, second_name):
-        pass
+        cur_node = self.find_position(name=position_name)
+        cur_node.assign_employee(first_name, second_name)
 
     def move_position(self, position_name, new_parent_name):
         pass
@@ -88,4 +104,5 @@ class Company:
 
 company1 = Company()
 company1.build_from_json("data.json")
+company1.remove_employee("Дарья", "Сидорова")
 company1.print_all_positions()
