@@ -1,34 +1,39 @@
 import json
+#from collections import deque
 from position import Position
 
 class Company:
     def __init__(self, root=None):
         self.root = root
 
-    def build_from_json(self, file_path: str):
+    def build_from_json(self, file_path):
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
-        
-        position_by_name = {}
 
-        for items in data:
+        positions_by_name = {}
+
+        for item in data:
             position = Position(
-                items["first_name"], items["last_name"], items["name"],
-                items["id"]
+                first_name=item["first_name"],
+                second_name=item["second_name"],
+                name=item["name"],
+                new_id=item["id"]
             )
 
-            if not items["parent"]:
+            positions_by_name[position.name] = position
+
+            if item["parent"] is None:
                 self.root = position
-                continue
 
-            position_by_name[position.name] = position
+        for item in data:
+            parent_name = item["parent"]
 
-        for items in data:
+            if parent_name is not None:
+                current_position = positions_by_name[item["name"]]
+                parent_position = positions_by_name[parent_name]
 
-            cur_pos = position_by_name[items["name"]]
-            parent_pos = position_by_name[items["parent_name"]]
-            cur_pos.parent = parent_pos
-            parent_pos.subordinates.append(cur_pos)
+                current_position.parent = parent_position
+                parent_position.subordinates.append(current_position)
 
     def find_position(self, attr, value):
         def dfs(node):
@@ -48,10 +53,25 @@ class Company:
         return dfs(self.root)    
 
     def add_position(self, position_name, parent_position_name, first_name="", second_name=""):
-        pass
+        parent_node = self.find_position("name", parent_position_name)
+        
+        new_position = Position(
+            first_name, second_name, 
+            position_name, parent_node
+        )
+
+        parent_node.subordinates.append(new_position)
 
     def print_all_positions(self):
-        pass
+        def printer(cur_node: Position, counter: int):
+            if cur_node is None:
+                return
+            
+            print("---"*counter + f"{cur_node.name}({cur_node.first_name + ' ' + cur_node.second_name})")
+
+            for node in cur_node.subordinates:
+                printer(node, counter+1)
+        printer(self.root, 0)
 
     def close_position(self, position_name):
         pass
@@ -67,5 +87,5 @@ class Company:
 
 
 company1 = Company()
-
 company1.build_from_json("data.json")
+company1.print_all_positions()
