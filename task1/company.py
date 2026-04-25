@@ -1,5 +1,4 @@
 import json
-#from collections import deque
 from position import Position
 
 class Company:
@@ -88,21 +87,24 @@ class Company:
 
     def remove_employee(self, first_name: str, second_name: str):
         cur_node = self.find_position(first_name=first_name, second_name=second_name)
-        if not cur_node:
-            return
-        cur_node.id = ""
-        cur_node.first_name = ""
-        cur_node.second_name = ""
+        cur_node.remove_employee()
 
     def assign_employee_to_free_position(self, position_name, first_name, second_name):
         cur_node = self.find_position(name=position_name)
         cur_node.assign_employee(first_name, second_name)
 
     def move_position(self, position_name, new_parent_name):
-        pass
+        cur_node = self.find_position(name=position_name)
+        new_parent = self.find_position(name=new_parent_name)
 
+        old_parent = cur_node.parent
 
-company1 = Company()
-company1.build_from_json("data.json")
-company1.remove_employee("Дарья", "Сидорова")
-company1.print_all_positions()
+        old_parent.subordinates.remove(cur_node)
+
+        for child in cur_node.subordinates:
+            child.parent = old_parent
+            old_parent.subordinates.append(child)
+
+        cur_node.subordinates = []
+        cur_node.parent = new_parent
+        new_parent.subordinates.append(cur_node)
