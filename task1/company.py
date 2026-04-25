@@ -5,7 +5,7 @@ class Company:
     def __init__(self, root=None):
         self.root = root
 
-    def build_from_json(self, file_path):
+    def build_from_json(self, file_path: str):
         with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
         
@@ -24,7 +24,6 @@ class Company:
             position_by_name[position.name] = position
 
         for items in data:
-            parent_name = items["parent"]
 
             cur_pos = position_by_name[items["name"]]
             parent_pos = position_by_name[items["parent_name"]]
@@ -32,7 +31,24 @@ class Company:
             parent_pos.subordinates.append(cur_pos)
 
     def find_position_by_name(self, position_name):
-        pass
+        if not position_name:
+            return
+
+        def _dfs(cur_node: Position):
+            if cur_node is None:
+                return None
+
+            if cur_node.name == position_name:
+                return cur_node
+            
+            for sub in cur_node.subordinates:
+                search = _dfs(sub)
+                if search:
+                    return search
+                
+            return None
+        
+        return _dfs(self.root)
 
     def find_position_by_employee(self, first_name, second_name):
         pass
