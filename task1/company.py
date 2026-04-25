@@ -30,28 +30,22 @@ class Company:
             cur_pos.parent = parent_pos
             parent_pos.subordinates.append(cur_pos)
 
-    def find_position_by_name(self, position_name):
-        if not position_name:
-            return
-
-        def _dfs(cur_node: Position):
-            if cur_node is None:
+    def find_position(self, attr, value):
+        def dfs(node):
+            if node is None:
                 return None
 
-            if cur_node.name == position_name:
-                return cur_node
-            
-            for sub in cur_node.subordinates:
-                search = _dfs(sub)
-                if search:
-                    return search
-                
-            return None
-        
-        return _dfs(self.root)
+            if getattr(node, attr) == value:
+                return node
 
-    def find_position_by_employee(self, first_name, second_name):
-        pass
+            for sub in node.subordinates:
+                found = dfs(sub)
+                if found:
+                    return found
+
+            return None
+
+        return dfs(self.root)    
 
     def add_position(self, position_name, parent_position_name, first_name="", second_name=""):
         pass
